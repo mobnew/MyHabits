@@ -15,7 +15,7 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     private let nameLabel: UILabel = {
        let label = UILabel()
         label.text = "НАЗВАНИЕ"
-        label.font = UIFont.boldSystemFont(ofSize: 13)
+        label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label
@@ -24,7 +24,7 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     private let nameTextField: UITextField = {
        let textfield = UITextField()
         textfield.translatesAutoresizingMaskIntoConstraints = false
-        textfield.font = UIFont.systemFont(ofSize: 17)
+        textfield.font = UIFont.systemFont(ofSize: 17,weight: .regular)
         textfield.placeholder = "Бегать по утрам, спать 8 часов и т.п."
         
         return textfield
@@ -34,7 +34,7 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     private let colorLabel: UILabel = {
         let label = UILabel()
          label.text = "ЦВЕТ"
-         label.font = UIFont.boldSystemFont(ofSize: 13)
+        label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
          label.translatesAutoresizingMaskIntoConstraints = false
          
          return label
@@ -54,7 +54,7 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     private let timeLabel: UILabel = {
         let label = UILabel()
         label.text = "ВРЕМЯ"
-        label.font = UIFont.boldSystemFont(ofSize: 13)
+        label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label
@@ -65,22 +65,22 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
         let date = UILabel()
         date.text =   "Каждый день в "
         date.translatesAutoresizingMaskIntoConstraints = false
-        date.font = UIFont.systemFont(ofSize: 17)
+        date.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         
         return date
     }()
     
     
-     private let timeTextField: UITextField = {
+     private let time24Label: UITextField = {
         let time = UITextField()
         time.translatesAutoresizingMaskIntoConstraints = false
-        time.font = UIFont.systemFont(ofSize: 17)
-        time.textColor = .systemBlue
+        time.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        time.textColor = UIColor(named: "AccentColor")
         
         time.text = "11:00"
         
         return time
-    }()
+     }()
     
     
      private let timeDatePicker: UIDatePicker = {
@@ -127,10 +127,11 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
             HabitsStore.shared.habits.remove(at: self.habitIDedit!)
             HabitsStore.shared.save()
             
-            self.navigationController?.popToRootViewController(animated: true)
-            self.dismiss(animated: true, completion: nil)
+            self.performSegue(withIdentifier: "backSegue", sender: self)
             
-            }
+        }
+        
+        
             
             alertController.addAction(cancelAction)
             alertController.addAction(deleteAction)
@@ -143,25 +144,25 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     
     
     @objc func handleDatePicker(sender: UIDatePicker) {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "HH:mm"
-                timeTextField.text = dateFormatter.string(from: sender.date)
-            }
-
-
-            override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-                self.view.endEditing(true)
-            }
-
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        time24Label.text = dateFormatter.string(from: sender.date)
+    }
+    
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
+    }
+    
     
     
     @objc func colorButtonPressed() {
-            let picker = UIColorPickerViewController()
-            self.present(picker, animated: true, completion: nil)
-            picker.selectedColor = colorButton.backgroundColor!
+        let picker = UIColorPickerViewController()
+        self.present(picker, animated: true, completion: nil)
+        picker.selectedColor = colorButton.backgroundColor!
         
-            picker.delegate = self
-        }
+        picker.delegate = self
+    }
     
     
     @objc func closeModal() {
@@ -171,25 +172,40 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     
     
     @objc func saveHabit() {
-        let newHabit = Habit(name: nameTextField.text ?? "Просто привычка",
-                             date: timeDatePicker.date,
-                             color: colorButton.backgroundColor ?? .black)
-        let store = HabitsStore.shared
+        
         
         if let ID = habitIDedit {
-            store.habits[ID] = newHabit
+            let store = HabitsStore.shared
+            
+            store.habits[ID].name = nameTextField.text ?? "Просто привычка"
+            store.habits[ID].date = timeDatePicker.date
+            store.habits[ID].color = colorButton.backgroundColor ?? .black
+            
+            
         } else {
-        store.habits.append(newHabit)
+            let newHabit = Habit(name: nameTextField.text ?? "Просто привычка",
+                                 date: timeDatePicker.date,
+                                 color: colorButton.backgroundColor ?? .black)
+            let store = HabitsStore.shared
+            
+            store.habits.append(newHabit)
         }
         
+        HabitsStore.shared.save()
         navigationController?.popViewController(animated: true)
         dismiss(animated: true, completion: nil)
         
+        
     }
-        
-        
+    
+    
     
 //MARK: Lifecycle
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -200,7 +216,7 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
         view.addSubview(colorButton)
         view.addSubview(timeLabel)
         view.addSubview(timeText)
-        view.addSubview(timeTextField)
+        view.addSubview(time24Label)
         view.addSubview(timeDatePicker)
         view.addSubview(deleteButton)
         
@@ -213,18 +229,19 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
             
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "HH:mm"
-            timeTextField.text = dateFormatter.string(from: timeDatePicker.date)
+            time24Label.text = dateFormatter.string(from: timeDatePicker.date)
             deleteButton.isHidden = false
-            tabBarController?.tabBar.isHidden = true
+          
+
         }
         
-        setupConstranits()
-
+        setupConstraints()
+        
         
     }
     
 //    MARK: Constraints
-    func setupConstranits() {
+    func setupConstraints() {
         
         let constraints = [
             nameLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 21),
@@ -248,8 +265,8 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
             timeText.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 7),
             timeText.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             
-            timeTextField.topAnchor.constraint(equalTo: timeText.topAnchor),
-            timeTextField.leadingAnchor.constraint(equalTo: timeText.trailingAnchor),
+            time24Label.topAnchor.constraint(equalTo: timeText.topAnchor),
+            time24Label.leadingAnchor.constraint(equalTo: timeText.trailingAnchor),
             
             timeDatePicker.topAnchor.constraint(equalTo: timeText.bottomAnchor, constant: 7),
             timeDatePicker.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),

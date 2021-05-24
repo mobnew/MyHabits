@@ -31,8 +31,8 @@ class HabitsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationController?.navigationBar.prefersLargeTitles = true
         
+        view.backgroundColor = .white
         view.addSubview(collectView)
 
 
@@ -52,11 +52,10 @@ class HabitsViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        self.navigationController?.navigationBar.prefersLargeTitles = true
+        self.navigationController?.navigationBar.backgroundColor = .white
         
         collectView.reloadData()
-        
-        let indexSet = IndexSet(integer: 1)
-        collectView.reloadSections(indexSet)
     }
     
     
@@ -70,6 +69,8 @@ class HabitsViewController: UIViewController {
         
         NSLayoutConstraint.activate(constraints)
     }
+    
+    @IBAction func unwindToHabitsViewController(segue: UIStoryboardSegue) {}
     
 
 }
@@ -87,6 +88,9 @@ extension HabitsViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
+        let myHabit = HabitsStore.shared.habits[indexPath.row]
+        
+        
         if indexPath.section == 0 {
         let myCell = collectionView.dequeueReusableCell(withReuseIdentifier: "progressCell", for: indexPath) as! HabitProgressCollectionViewCell
             
@@ -99,19 +103,23 @@ extension HabitsViewController: UICollectionViewDataSource {
             
         let myCell = collectionView.dequeueReusableCell(withReuseIdentifier: "habitCell", for: indexPath) as! HabitItemCollectionViewCell
             
-            myCell.nameLabel.text = HabitsStore.shared.habits[indexPath.row].name
-            myCell.nameLabel.textColor = HabitsStore.shared.habits[indexPath.row].color
-            myCell.checkButton.layer.borderColor = HabitsStore.shared.habits[indexPath.row].color.cgColor
-            myCell.timeLabel.text = HabitsStore.shared.habits[indexPath.row].dateString
-            myCell.countLabel.text = "Счетчик: \(HabitsStore.shared.habits[indexPath.row].trackDates.count)"
+            myCell.nameLabel.text = myHabit.name
+            myCell.nameLabel.textColor = myHabit.color
+            myCell.checkButton.layer.borderColor = myHabit.color.cgColor
+            myCell.timeLabel.text = myHabit.dateString
+            myCell.countLabel.text = "Счетчик: \(myHabit.trackDates.count)"
             
             
-            if HabitsStore.shared.habits[indexPath.row].isAlreadyTakenToday {
-                myCell.checkButton.backgroundColor = UIColor(cgColor: myCell.checkButton.layer.borderColor!)
-                myCell.checkButton.tintColor = UIColor(cgColor: myCell.checkButton.layer.borderColor!)
+            if myHabit.isAlreadyTakenToday {
+                myCell.checkButton.backgroundColor = UIColor(cgColor: myHabit.color.cgColor)
+                myCell.checkButton.tintColor = UIColor(cgColor: myHabit.color.cgColor)
                 myCell.checkButton.setImage(.checkmark, for: .normal)
                 
             } else {
+                myCell.checkButton.backgroundColor = .white
+                myCell.checkButton.tintColor = .white
+                myCell.checkButton.setImage(nil, for: .normal)
+                
                 myCell.checkButton.tag = indexPath.row
             myCell.checkButton.addTarget(self, action: #selector(btnpressed1(sender:)), for: .touchUpInside)
                 
@@ -127,19 +135,16 @@ extension HabitsViewController: UICollectionViewDataSource {
     @objc func btnpressed1(sender: UIButton!)  {
         
         
-        sender.backgroundColor = UIColor(cgColor: sender.layer.borderColor!)
-        sender.tintColor = UIColor(cgColor: sender.layer.borderColor!)
+        sender.backgroundColor = UIColor(cgColor: HabitsStore.shared.habits[sender.tag].color.cgColor)
+        sender.tintColor = UIColor(cgColor: HabitsStore.shared.habits[sender.tag].color.cgColor)
         sender.setImage(.checkmark, for: .normal)
         
-        if !HabitsStore.shared.habits[sender.tag].isAlreadyTakenToday {
+        if HabitsStore.shared.habits[sender.tag].isAlreadyTakenToday == false {
         HabitsStore.shared.track(HabitsStore.shared.habits[sender.tag])
+            
         }
         
-        let indexSet = IndexSet(integer: 0)
-        collectView.reloadSections(indexSet)
-
-        
-        
+        collectView.reloadData()
         
    }
     
@@ -148,7 +153,6 @@ extension HabitsViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         2
     }
-
     
 }
     
@@ -175,11 +179,13 @@ extension HabitsViewController: UICollectionViewDelegateFlowLayout {
     
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
+
+        if indexPath.section == 1 {
+
         guard let detailVC = self.storyboard?.instantiateViewController(identifier: "detail") as? HabitDetailsViewController else { return }
-        detailVC.habitID = indexPath.row
-                
-        show(detailVC, sender: nil)
+            detailVC.habitID = indexPath.row
+            self.navigationController?.pushViewController(detailVC, animated: true)
+        }
     }
     
 

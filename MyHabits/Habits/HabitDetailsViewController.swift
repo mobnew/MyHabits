@@ -10,7 +10,7 @@ import UIKit
 class HabitDetailsViewController: UIViewController {
 
     var habitID: Int?
-//    var isCloseForm: Bool = false
+
     
     let cellID = "cellID"
     
@@ -23,27 +23,18 @@ class HabitDetailsViewController: UIViewController {
     }()
     
     override func viewWillAppear(_ animated: Bool) {
+        
         if let ID = habitID {
             title = HabitsStore.shared.habits[ID].name
-        }
-        
-        tabBarController?.tabBar.isHidden = false
-        
-        
-    
+        } else { navigationController?.popViewController(animated: true) }
         
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
         view.backgroundColor = .systemGray2
-        navigationController?.navigationBar.backgroundColor = .white
         navigationController?.navigationBar.prefersLargeTitles = false
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Править", style: .plain, target: self, action: #selector(editPress))
-        
-        
         
         view.addSubview(detailTableView)
         
@@ -66,16 +57,15 @@ class HabitDetailsViewController: UIViewController {
 
     }
     
-    @objc func editPress() {
-        guard let editVC = self.storyboard?.instantiateViewController(identifier: "add_edit") as? HabitViewController else { return }
-        editVC.habitIDedit = habitID
-        editVC.modalPresentationStyle = .fullScreen
-        show(editVC, sender: self)
-
-        
-    }
     
-
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let navVC = segue.destination as? UINavigationController{
+                   if let historyVC = navVC.viewControllers[0] as? HabitViewController{
+                    historyVC.habitIDedit = habitID
+                   
+               }
+           }
+    }
 }
 
 
@@ -93,10 +83,8 @@ extension HabitDetailsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let myCell = tableView.dequeueReusableCell(withIdentifier: cellID) as! HabitDetailsTableViewCell
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
-        
-        let myHabit = HabitsStore.shared.habits[habitID!]
+
+        let myHabit = HabitsStore.shared.habits[habitID ?? 0]
         let myHabitDate = HabitsStore.shared.dates[indexPath.row]
         
         
@@ -110,7 +98,8 @@ extension HabitDetailsViewController: UITableViewDataSource {
         
         
         myCell.selectionStyle = .none
-        myCell.dayLabel.text = dateFormatter.string(from: HabitsStore.shared.dates[indexPath.row])
+        myCell.dayLabel.text = HabitsStore.shared.trackDateString(forIndex: indexPath.row)
+
         return myCell
     }
 
