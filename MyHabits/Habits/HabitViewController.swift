@@ -71,8 +71,8 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
     }()
     
     
-     private let time24Label: UITextField = {
-        let time = UITextField()
+     private let time24Label: UILabel = {
+        let time = UILabel()
         time.translatesAutoresizingMaskIntoConstraints = false
         time.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         time.textColor = UIColor(named: "AccentColor")
@@ -177,16 +177,20 @@ class HabitViewController: UIViewController, UIColorPickerViewControllerDelegate
         if let ID = habitIDedit {
             let store = HabitsStore.shared
             
-            store.habits[ID].name = nameTextField.text ?? "Просто привычка"
+            store.habits[ID].name = nameTextField.text ?? ""
             store.habits[ID].date = timeDatePicker.date
             store.habits[ID].color = colorButton.backgroundColor ?? .black
+            if store.habits[ID].name == "" { store.habits[ID].name = "Просто привычка" }
             
             
         } else {
-            let newHabit = Habit(name: nameTextField.text ?? "Просто привычка",
+            let newHabit = Habit(name: nameTextField.text ?? "",
                                  date: timeDatePicker.date,
                                  color: colorButton.backgroundColor ?? .black)
+            if newHabit.name == "" { newHabit.name = "Просто привычка" }
+            
             let store = HabitsStore.shared
+            
             
             store.habits.append(newHabit)
         }

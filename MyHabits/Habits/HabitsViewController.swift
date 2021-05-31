@@ -88,7 +88,7 @@ extension HabitsViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let myHabit = HabitsStore.shared.habits[indexPath.row]
+        
         
         
         if indexPath.section == 0 {
@@ -100,7 +100,8 @@ extension HabitsViewController: UICollectionViewDataSource {
             return myCell
         }
         else {
-            
+        
+        let myHabit = HabitsStore.shared.habits[indexPath.row]
         let myCell = collectionView.dequeueReusableCell(withReuseIdentifier: "habitCell", for: indexPath) as! HabitItemCollectionViewCell
             
             myCell.nameLabel.text = myHabit.name
